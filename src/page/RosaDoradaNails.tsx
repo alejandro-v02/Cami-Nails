@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode, ElementType, RefObject } from "react";
 
 
 const NOMBRE_NEGOCIO = "Rosa Dorada";
@@ -7,8 +8,8 @@ const INSTAGRAM_HANDLE = "@rosadorada.nails";
 const WHATSAPP_MSG = encodeURIComponent("¡Hola! Vi tu página y quiero agendar una cita 💅");
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
 
-function useReveal() {
-  const ref = useRef(null);
+function useReveal(): [RefObject<HTMLDivElement | null>, boolean] {
+  const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -28,11 +29,19 @@ function useReveal() {
   return [ref, visible];
 }
 
-function Reveal({ as: Tag = "div", delay = 0, className = "", children, ...rest }) {
+interface RevealProps {
+  as?: ElementType;
+  delay?: number;
+  className?: string;
+  children?: ReactNode;
+  id?: string;
+}
+
+function Reveal({ as: Tag = "div", delay = 0, className = "", children, ...rest }: RevealProps) {
   const [ref, visible] = useReveal();
   return (
     <Tag
-      ref={ref}
+      ref={ref as never}
       className={`reveal ${visible ? "reveal-visible" : ""} ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
       {...rest}
@@ -76,7 +85,12 @@ const SERVICIOS = [
 ];
 
 // GALERÍA — swatches ilustrativos (reemplaza por <img> con fotos reales cuando las tengas)
-const GALERIA = [
+interface GaleriaItem {
+  nombre: string;
+  bg: string;
+}
+
+const GALERIA: GaleriaItem[] = [
   { nombre: "French dorado", bg: "linear-gradient(160deg,#fbf3e8 55%,#d9a94a 55% 100%)" },
   { nombre: "Rosé glossy", bg: "linear-gradient(135deg,#f3c7d8,#e59fb9)" },
   { nombre: "Marmoleado nude", bg: "radial-gradient(circle at 30% 30%,#fff,#e8c9d3 60%,#c98aa1)" },
@@ -85,7 +99,7 @@ const GALERIA = [
   { nombre: "Chrome dorado", bg: "linear-gradient(120deg,#d9a94a,#fbe6b3,#d9a94a)" },
 ];
 
-const TESTIMONIOS = [
+const TESTIMONIOS: { texto: string; autor: string }[] = [
   {
     texto: "Cada vez que salgo de mis citas siento que llevo puestas obras de arte. El detalle en cada uña es impresionante.",
     autor: "Camila R.",
@@ -130,14 +144,14 @@ function Testimonios() {
   );
 }
 
-function Carrusel({ items }) {
-  const trackRef = useRef(null);
+function Carrusel({ items }: { items: GaleriaItem[] }) {
+  const trackRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(0);
 
-  const scrollToIndex = (i) => {
+  const scrollToIndex = (i: number) => {
     const track = trackRef.current;
     if (!track) return;
-    const card = track.children[i];
+    const card = track.children[i] as HTMLElement | undefined;
     if (card) {
       track.scrollTo({
         left: card.offsetLeft - track.offsetLeft,
@@ -152,11 +166,11 @@ function Carrusel({ items }) {
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
-    let raf;
+    let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        const children = Array.from(track.children);
+        const children = Array.from(track.children) as HTMLElement[];
         let closest = 0;
         let min = Infinity;
         children.forEach((c, i) => {
@@ -186,7 +200,7 @@ function Carrusel({ items }) {
       </button>
 
       <div className="carrusel-track" ref={trackRef}>
-        {items.map((g, i) => (
+        {items.map((g) => (
           <div className="swatch carrusel-item" key={g.nombre}>
             <div className="swatch-bg" style={{ background: g.bg }} />
             <div className="swatch-shine" />
