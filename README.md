@@ -1,75 +1,35 @@
-# React + TypeScript + Vite
+# Rosa Dorada Nails — Landing Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Landing page del salón de uñas **Rosa Dorada (Pitalito, Huila)**, construida con
+React 19 + TypeScript + Vite. Belleza y nail art, con paleta crema/oro/rosa.
 
-Currently, two official plugins are available:
+## Estructura
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `src/page/RosaDoradaNails.tsx` — toda la landing en un único componente:
+  nav fijo, hero animado, sobre, servicios, galería en carrusel, testimonios
+  rotativos, contacto (WhatsApp/Instagram) y footer. El CSS está embebido en un
+  `<style>` dentro del componente.
+- `src/main.tsx` — punto de entrada; renderiza `RosaDoradaNails`.
+- `index.html` — entrada del bundle; contiene `lang="es"`, `<title>`, meta
+  description/theme-color y las Google Fonts (Playfair Display + Jost) con
+  `preconnect` + `display=swap`.
+- `public/favicon.svg` — favicon de la marca (rosa abstracta en oro/rosa).
 
-## React Compiler
+## Scripts
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `npm run dev` — servidor de desarrollo con HMR
+- `npm run build` — `tsc -b && vite build` (genera `dist/`)
+- `npm run lint` — `eslint .`
+- `npm run preview` — sirve el build de producción
 
-## Expanding the ESLint configuration
+## Cambios de contenido pendientes (datos del negocio)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Estos valores son placeholders y deberían reemplazarse en
+`src/page/RosaDoradaNails.tsx` con los datos reales del negocio:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- `WHATSAPP_NUMBER` (línea ~7) — es `573001234567`; poner el número real con
+  formato internacional (código país + número, sin `+`).
+- `INSTAGRAM_HANDLE` (línea ~8) — verificar que sea `@rosadorada.nails`.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+Además, la galería (`GALERIA`) usa swatches ilustrativos en CSS; reemplazarlos
+por `<img>` con fotos reales cuando estén disponibles.

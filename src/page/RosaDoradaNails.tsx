@@ -153,10 +153,7 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
     if (!track) return;
     const card = track.children[i] as HTMLElement | undefined;
     if (card) {
-      track.scrollTo({
-        left: card.offsetLeft - track.offsetLeft,
-        behavior: "smooth",
-      });
+      card.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     }
   };
 
@@ -166,25 +163,40 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
+
+    const updateActive = () => {
+      const children = Array.from(track.children) as HTMLElement[];
+      if (children.length === 0) return;
+      const trackRect = track.getBoundingClientRect();
+      const center = trackRect.width / 2;
+      let closest = 0;
+      let min = Infinity;
+      children.forEach((c, i) => {
+        const rect = c.getBoundingClientRect();
+        const cardCenter = rect.left - trackRect.left + rect.width / 2;
+        const d = Math.abs(cardCenter - center);
+        if (d < min) {
+          min = d;
+          closest = i;
+        }
+      });
+      setActive(closest);
+    };
+
     let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const children = Array.from(track.children) as HTMLElement[];
-        let closest = 0;
-        let min = Infinity;
-        children.forEach((c, i) => {
-          const d = Math.abs(c.offsetLeft - track.scrollLeft);
-          if (d < min) {
-            min = d;
-            closest = i;
-          }
-        });
-        setActive(closest);
-      });
+      raf = requestAnimationFrame(updateActive);
     };
     track.addEventListener("scroll", onScroll, { passive: true });
-    return () => track.removeEventListener("scroll", onScroll);
+
+    const ro = new ResizeObserver(() => updateActive());
+    ro.observe(track);
+
+    return () => {
+      track.removeEventListener("scroll", onScroll);
+      ro.disconnect();
+    };
   }, []);
 
   return (
@@ -245,8 +257,6 @@ export default function App() {
   return (
     <div className="page">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500;600&display=swap');
-
         :root{
           --cream: #FBF3E8;
           --cream-deep: #F3E4CE;
@@ -638,13 +648,14 @@ export default function App() {
 
       {/* HERO */}
       <section className="hero">
-        <div className="hero-blob blob-1" />
-        <div className="hero-blob blob-2" />
-        <div className="hero-blob blob-3" />
+        <div className="hero-blob blob-1" aria-hidden="true" />
+        <div className="hero-blob blob-2" aria-hidden="true" />
+        <div className="hero-blob blob-3" aria-hidden="true" />
         {Array.from({ length: 14 }).map((_, i) => (
           <span
             key={i}
             className="sparkle"
+            aria-hidden="true"
             style={{
               width: `${4 + (i % 4) * 2}px`,
               height: `${4 + (i % 4) * 2}px`,
@@ -678,8 +689,8 @@ export default function App() {
       <section className="section">
         <div className="sobre">
           <Reveal className="sobre-visual">
-            <span className="ring ring1" />
-            <span className="ring ring2" />
+            <span className="ring ring1" aria-hidden="true" />
+            <span className="ring ring2" aria-hidden="true" />
           </Reveal>
           <Reveal delay={120} className="sobre-text">
             <p className="eyebrow" style={{ marginBottom: 14 }}>
