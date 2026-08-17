@@ -271,6 +271,9 @@ export default function App() {
 
         *{ box-sizing: border-box; }
 
+        html{
+          scroll-behavior: smooth;
+        }
         html, body, #root{
           margin: 0; padding: 0; width: 100%; min-height: 100%;
           background: #FBF3E8;
@@ -538,7 +541,7 @@ export default function App() {
         .swatch{
           position:relative; aspect-ratio: 1/1; border-radius: 18px; overflow:hidden;
           box-shadow: 0 18px 30px -20px rgba(62,37,48,0.4);
-          cursor: default;
+          cursor: pointer;
         }
         .swatch-bg{ position:absolute; inset:0; transition: transform 0.6s ease; }
         .swatch:hover .swatch-bg{ transform: scale(1.08); }
@@ -686,7 +689,7 @@ export default function App() {
       </section>
 
       {/* SOBRE */}
-      <section className="section">
+      <section className="section" id="sobre">
         <div className="sobre">
           <Reveal className="sobre-visual">
             <span className="ring ring1" aria-hidden="true" />
@@ -746,7 +749,7 @@ export default function App() {
       </section>
 
       {/* TESTIMONIOS */}
-      <section className="section">
+      <section className="section" id="testimonios">
         <Reveal as="div" className="section-head">
           <p className="eyebrow">Clientas felices</p>
           <h2>Lo que dicen después de su cita</h2>
