@@ -3,7 +3,7 @@ import type { ReactNode, ElementType, RefObject } from "react";
 
 
 const NOMBRE_NEGOCIO = "Rosa Dorada";
-const WHATSAPP_NUMBER = "573001234567"; // reemplaza por el número real
+const WHATSAPP_NUMBER = "573001234567"; 
 const INSTAGRAM_HANDLE = "@rosadorada.nails";
 const WHATSAPP_MSG = encodeURIComponent("¡Hola! Vi tu página y quiero agendar una cita 💅");
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
@@ -730,7 +730,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* GALERIA */}
       <section className="section" id="galeria">
         <Reveal as="div" className="section-head">
           <p className="eyebrow">Galería</p>
@@ -745,7 +744,6 @@ export default function App() {
         </Reveal>
       </section>
 
-      {/* TESTIMONIOS */}
       <section className="section">
         <Reveal as="div" className="section-head">
           <p className="eyebrow">Clientas felices</p>
@@ -754,7 +752,6 @@ export default function App() {
         <Testimonios />
       </section>
 
-      {/* CONTACTO */}
       <section className="section">
         <Reveal className="contacto">
           <h2>Agenda tu próxima cita</h2>
