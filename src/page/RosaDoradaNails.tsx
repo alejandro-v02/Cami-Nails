@@ -1,6 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode, ElementType, RefObject } from "react";
 
+import image1 from "../assets/image1.png";
+import image2 from "../assets/image2.png";
+import image3 from "../assets/image3.png";
+import image4 from "../assets/image4.png";
+import image5 from "../assets/image5.png";
+import image6 from "../assets/image6.png";
+import image7 from "../assets/image7.png";
+import image8 from "../assets/image8.png";
+import image9 from "../assets/image9.png";
+import image10 from "../assets/image10.png";
+import image11 from "../assets/image11.png";
+import image12 from "../assets/image12.png";
+import image13 from "../assets/image13.png";
+import image14 from "../assets/image14.png";
+import image15 from "../assets/image15.png";
+
 
 const NOMBRE_NEGOCIO = "Rosa Dorada";
 const WHATSAPP_NUMBER = "573001234567"; // reemplaza por el número real
@@ -84,19 +100,28 @@ const SERVICIOS = [
   },
 ];
 
-// GALERÍA — swatches ilustrativos (reemplaza por <img> con fotos reales cuando las tengas)
+// GALERÍA — fotos reales del trabajo
 interface GaleriaItem {
   nombre: string;
-  bg: string;
+  img: string;
 }
 
 const GALERIA: GaleriaItem[] = [
-  { nombre: "French dorado", bg: "linear-gradient(160deg,#fbf3e8 55%,#d9a94a 55% 100%)" },
-  { nombre: "Rosé glossy", bg: "linear-gradient(135deg,#f3c7d8,#e59fb9)" },
-  { nombre: "Marmoleado nude", bg: "radial-gradient(circle at 30% 30%,#fff,#e8c9d3 60%,#c98aa1)" },
-  { nombre: "Glitter oro rosa", bg: "linear-gradient(150deg,#e9b7c8,#d9a94a,#e9b7c8)" },
-  { nombre: "Minimal blush", bg: "linear-gradient(160deg,#fbf3e8,#f3d3de)" },
-  { nombre: "Chrome dorado", bg: "linear-gradient(120deg,#d9a94a,#fbe6b3,#d9a94a)" },
+  { nombre: "Diseño 1", img: image1 },
+  { nombre: "Diseño 2", img: image2 },
+  { nombre: "Diseño 3", img: image3 },
+  { nombre: "Diseño 4", img: image4 },
+  { nombre: "Diseño 5", img: image5 },
+  { nombre: "Diseño 6", img: image6 },
+  { nombre: "Diseño 7", img: image7 },
+  { nombre: "Diseño 8", img: image8 },
+  { nombre: "Diseño 9", img: image9 },
+  { nombre: "Diseño 10", img: image10 },
+  { nombre: "Diseño 11", img: image11 },
+  { nombre: "Diseño 12", img: image12 },
+  { nombre: "Diseño 13", img: image13 },
+  { nombre: "Diseño 14", img: image14 },
+  { nombre: "Diseño 15", img: image15 },
 ];
 
 const TESTIMONIOS: { texto: string; autor: string }[] = [
@@ -118,14 +143,18 @@ function Testimonios() {
   const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(true);
   useEffect(() => {
+    let fadeTimer: ReturnType<typeof setTimeout>;
     const t = setInterval(() => {
       setFade(false);
-      setTimeout(() => {
+      fadeTimer = setTimeout(() => {
         setIdx((i) => (i + 1) % TESTIMONIOS.length);
         setFade(true);
       }, 380);
     }, 4600);
-    return () => clearInterval(t);
+    return () => {
+      clearInterval(t);
+      clearTimeout(fadeTimer);
+    };
   }, []);
   const actual = TESTIMONIOS[idx];
   return (
@@ -214,7 +243,7 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
       <div className="carrusel-track" ref={trackRef}>
         {items.map((g) => (
           <div className="swatch carrusel-item" key={g.nombre}>
-            <div className="swatch-bg" style={{ background: g.bg }} />
+            <img className="swatch-bg" src={g.img} alt={g.nombre} loading="lazy" />
             <div className="swatch-shine" />
             <div className="swatch-label">{g.nombre}</div>
           </div>
@@ -435,6 +464,7 @@ export default function App() {
           border: 1px solid rgba(62,37,48,0.18);
           padding: 15px 30px; border-radius: 999px; text-decoration:none;
           backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
           transition: transform 0.35s ease, background 0.35s ease, border-color 0.35s ease;
         }
         .btn-ghost:hover{ transform: translateY(-3px); background: rgba(255,255,255,0.7); border-color: var(--gold); }
@@ -524,6 +554,7 @@ export default function App() {
           display:flex; align-items:center; justify-content:center;
           cursor:pointer; z-index:3;
           backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
           transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
         }
         .carrusel-arrow:hover:not(:disabled){ background: linear-gradient(120deg, var(--pink-deep), var(--gold)); color: var(--cream); transform: translateY(-50%) scale(1.06); }
@@ -543,7 +574,11 @@ export default function App() {
           box-shadow: 0 18px 30px -20px rgba(62,37,48,0.4);
           cursor: pointer;
         }
-        .swatch-bg{ position:absolute; inset:0; transition: transform 0.6s ease; }
+        .swatch-bg{
+          position:absolute; inset:0; width:100%; height:100%;
+          object-fit: cover;
+          transition: transform 0.6s ease;
+        }
         .swatch:hover .swatch-bg{ transform: scale(1.08); }
         .swatch-shine{
           position:absolute; top:0; left:-70%; width:45%; height:100%;
@@ -567,6 +602,7 @@ export default function App() {
           border: 1px solid rgba(201,162,75,0.25);
           border-radius: 22px; padding: 46px 40px;
           backdrop-filter: blur(4px);
+          -webkit-backdrop-filter: blur(4px);
           transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
         }
         .testi-in{ opacity:1; filter: blur(0); transform: translateY(0); }
@@ -626,7 +662,7 @@ export default function App() {
           .contacto{ padding: 56px 6vw; }
           .contacto-ctas{ flex-direction: column; align-items: stretch; }
           .contacto-ctas a{ text-align: center; }
-          .carrusel{ padding: 0 44px; }
+          .carrusel{ padding: 0 56px; }
           .carrusel-arrow{ width: 38px; height: 38px; font-size: 1.25rem; }
         }
         @media (max-width: 420px){
@@ -738,10 +774,7 @@ export default function App() {
         <Reveal as="div" className="section-head">
           <p className="eyebrow">Galería</p>
           <h2>Algunos diseños recientes</h2>
-          <p>
-            Una muestra de estilos y acabados. Pronto con fotos reales del
-            trabajo terminado.
-          </p>
+          <p>Una muestra de estilos y acabados del trabajo terminado.</p>
         </Reveal>
         <Reveal>
           <Carrusel items={GALERIA} />
@@ -769,8 +802,8 @@ export default function App() {
             <a className="btn-primary" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
               Escribir por WhatsApp
             </a>
-            <a
-              className="btn-ghost"
+            
+              <a className="btn-ghost"
               style={{ color: "var(--cream)", borderColor: "rgba(251,243,232,0.4)", background: "rgba(255,255,255,0.08)" }}
               href={`https://instagram.com/${INSTAGRAM_HANDLE.replace("@", "")}`}
               target="_blank"
