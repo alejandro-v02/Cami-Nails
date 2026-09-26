@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode, ElementType, RefObject } from "react";
+import type { ReactNode, ElementType, RefObject, CSSProperties } from "react";
 import { createPortal } from "react-dom";
 
 import image1 from "../assets/image1.png";
@@ -185,6 +185,8 @@ function Testimonios() {
   );
 }
 
+const AUTOPLAY_MS = 3500;
+
 function Carrusel({ items }: { items: GaleriaItem[] }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(0);
@@ -206,17 +208,52 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
     };
   }, [abierta, items.length]);
 
+  // scroll solo horizontal dentro del track (scrollIntoView movería también la página)
   const scrollToIndex = (i: number) => {
     const track = trackRef.current;
     if (!track) return;
     const card = track.children[i] as HTMLElement | undefined;
     if (card) {
-      card.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      const left = card.offsetLeft - (track.clientWidth - card.offsetWidth) / 2;
+      track.scrollTo({ left, behavior: "smooth" });
     }
   };
 
-  const next = () => scrollToIndex(Math.min(active + 1, items.length - 1));
-  const prev = () => scrollToIndex(Math.max(active - 1, 0));
+  const next = () => scrollToIndex((active + 1) % items.length);
+  const prev = () => scrollToIndex((active - 1 + items.length) % items.length);
+
+  // AUTOPLAY — avanza solo mientras está en pantalla y nadie lo está usando
+  const [hover, setHover] = useState(false);
+  const [tocado, setTocado] = useState(false);
+  const [enPantalla, setEnPantalla] = useState(false);
+  const tocadoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const reduceMotion =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reproduciendo = enPantalla && !hover && !tocado && abierta === null && !reduceMotion;
+
+  const onTouch = () => {
+    setTocado(true);
+    clearTimeout(tocadoTimer.current);
+    tocadoTimer.current = setTimeout(() => setTocado(false), 6000);
+  };
+
+  useEffect(() => () => clearTimeout(tocadoTimer.current), []);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const obs = new IntersectionObserver(([entry]) => setEnPantalla(entry.isIntersecting), {
+      threshold: 0.4,
+    });
+    obs.observe(track);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!reproduciendo) return;
+    const t = setTimeout(() => scrollToIndex((active + 1) % items.length), AUTOPLAY_MS);
+    return () => clearTimeout(t);
+  }, [active, reproduciendo, items.length]);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -258,13 +295,18 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
   }, []);
 
   return (
-    <div className="carrusel">
+    <div
+      className={`carrusel ${reproduciendo ? "carrusel-playing" : ""}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onTouchStart={onTouch}
+      style={{ "--autoplay-ms": `${AUTOPLAY_MS}ms` } as CSSProperties}
+    >
       <button
         type="button"
         className="carrusel-arrow carrusel-arrow-left"
         onClick={prev}
         aria-label="Foto anterior"
-        disabled={active === 0}
       >
         ‹
       </button>
@@ -273,7 +315,7 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
         {items.map((g, i) => (
           <button
             type="button"
-            className="swatch carrusel-item"
+            className={`swatch carrusel-item ${i === active ? "carrusel-item-active" : ""}`}
             key={g.nombre}
             onClick={() => setAbierta(i)}
             aria-label={`Ampliar ${g.nombre}`}
@@ -290,7 +332,6 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
         className="carrusel-arrow carrusel-arrow-right"
         onClick={next}
         aria-label="Foto siguiente"
-        disabled={active === items.length - 1}
       >
         ›
       </button>
@@ -299,7 +340,8 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
         {items.map((_, i) => (
           <button
             type="button"
-            key={i}
+            // la key cambia al pausar/reanudar para reiniciar la barra de progreso
+            key={i === active ? `${i}-${reproduciendo}` : i}
             className={`carrusel-dot ${i === active ? "carrusel-dot-active" : ""}`}
             onClick={() => scrollToIndex(i)}
             aria-label={`Ir a la foto ${i + 1}`}
@@ -596,14 +638,32 @@ export default function App() {
           scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
-          padding: 4px 2px 10px;
+          position: relative;
+          --item-w: min(320px, 72vw);
+          /* margen lateral para que la primera y la última foto también queden centradas */
+          padding: 26px calc(50% - var(--item-w) / 2) 30px;
+          /* las fotos se desvanecen hacia los bordes */
+          -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+          mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
         }
         .carrusel-track::-webkit-scrollbar{ display:none; }
         .carrusel-item{
           flex: 0 0 auto;
-          width: min(320px, 72vw);
+          width: var(--item-w);
           scroll-snap-align: center;
+          transform: scale(0.84);
+          opacity: 0.5;
+          filter: saturate(0.7);
+          transition: transform 0.7s cubic-bezier(.22,.68,.32,1), opacity 0.7s ease, filter 0.7s ease, box-shadow 0.7s ease;
         }
+        .carrusel-item-active{
+          transform: scale(1);
+          opacity: 1;
+          filter: none;
+          box-shadow: 0 30px 50px -24px rgba(201,103,139,0.55), 0 0 0 2px rgba(233,200,116,0.65);
+        }
+        .carrusel-item-active .swatch-bg{ animation: kenburns 7s ease-in-out infinite alternate; }
+        @keyframes kenburns{ from{ transform: scale(1); } to{ transform: scale(1.07); } }
         .carrusel-arrow{
           position:absolute; top:50%; transform:translateY(-50%);
           width:44px; height:44px; border-radius:50%; border:none;
@@ -620,13 +680,23 @@ export default function App() {
         .carrusel-arrow:disabled{ opacity: 0.3; cursor: default; }
         .carrusel-arrow-left{ left: 0; }
         .carrusel-arrow-right{ right: 0; }
-        .carrusel-dots{ display:flex; gap:8px; justify-content:center; margin-top: 18px; }
+        .carrusel-dots{ display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap; margin-top: 8px; }
         .carrusel-dot{
-          width:8px; height:8px; border-radius:50%; padding:0; border:none;
+          width:8px; height:8px; border-radius:999px; padding:0; border:none;
           background: rgba(62,37,48,0.22); cursor:pointer;
-          transition: background 0.3s ease, transform 0.3s ease;
+          position: relative; overflow: hidden;
+          transition: background 0.3s ease, width 0.4s ease;
         }
-        .carrusel-dot-active{ background: var(--pink-deep); transform: scale(1.35); }
+        .carrusel-dot-active{ width: 28px; background: var(--pink-deep); }
+        /* mientras avanza solo, el punto activo se llena como barra de progreso */
+        .carrusel-playing .carrusel-dot-active{ background: rgba(201,103,139,0.3); }
+        .carrusel-playing .carrusel-dot-active::after{
+          content:""; position:absolute; inset:0;
+          background: linear-gradient(90deg, var(--pink-deep), var(--gold));
+          transform-origin: left;
+          animation: carruselProgreso var(--autoplay-ms) linear forwards;
+        }
+        @keyframes carruselProgreso{ from{ transform: scaleX(0); } to{ transform: scaleX(1); } }
 
         .swatch{
           position:relative; aspect-ratio: 1/1; border-radius: 18px; overflow:hidden;
@@ -757,7 +827,7 @@ export default function App() {
           .eyebrow{ font-size: 0.68rem; letter-spacing: 0.16em; }
           .carrusel{ padding: 0 8px; }
           .carrusel-arrow{ display: none; }
-          .carrusel-item{ width: 82vw; }
+          .carrusel-track{ --item-w: 78vw; }
         }
       `}</style>
 
