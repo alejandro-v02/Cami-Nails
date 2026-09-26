@@ -191,6 +191,10 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(0);
   const [abierta, setAbierta] = useState<number | null>(null);
+  const swipeX = useRef<number | null>(null);
+
+  const fotoSiguiente = () => setAbierta((i) => (i === null ? i : (i + 1) % items.length));
+  const fotoAnterior = () => setAbierta((i) => (i === null ? i : (i - 1 + items.length) % items.length));
 
   useEffect(() => {
     if (abierta === null) return;
@@ -297,8 +301,9 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
   return (
     <div
       className={`carrusel ${reproduciendo ? "carrusel-playing" : ""}`}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      // solo ratón real: en táctil el navegador simula mouseenter sin mouseleave y el carrusel quedaba pausado
+      onPointerEnter={(e) => e.pointerType === "mouse" && setHover(true)}
+      onPointerLeave={(e) => e.pointerType === "mouse" && setHover(false)}
       onTouchStart={onTouch}
       style={{ "--autoplay-ms": `${AUTOPLAY_MS}ms` } as CSSProperties}
     >
@@ -356,6 +361,16 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
           aria-modal="true"
           aria-label={items[abierta].nombre}
           onClick={() => setAbierta(null)}
+          onTouchStart={(e) => {
+            swipeX.current = e.touches[0].clientX;
+          }}
+          onTouchEnd={(e) => {
+            if (swipeX.current === null) return;
+            const dx = e.changedTouches[0].clientX - swipeX.current;
+            swipeX.current = null;
+            if (dx < -50) fotoSiguiente();
+            else if (dx > 50) fotoAnterior();
+          }}
         >
           <img
             className="lightbox-img"
@@ -366,6 +381,28 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
           <p className="lightbox-caption">
             {items[abierta].nombre} · {abierta + 1}/{items.length}
           </p>
+          <button
+            type="button"
+            className="lightbox-nav lightbox-nav-left"
+            onClick={(e) => {
+              e.stopPropagation();
+              fotoAnterior();
+            }}
+            aria-label="Foto anterior"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            className="lightbox-nav lightbox-nav-right"
+            onClick={(e) => {
+              e.stopPropagation();
+              fotoSiguiente();
+            }}
+            aria-label="Foto siguiente"
+          >
+            ›
+          </button>
           <button type="button" className="lightbox-close" onClick={() => setAbierta(null)} aria-label="Cerrar">
             ×
           </button>
@@ -710,6 +747,7 @@ export default function App() {
           position: fixed; inset: 0; z-index: 100;
           display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 14px;
           padding: 24px;
+          font-family: 'Jost', sans-serif; /* va en un portal fuera de .page, no hereda la fuente */
           background: rgba(62,37,48,0.88);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
@@ -730,6 +768,25 @@ export default function App() {
           transition: background 0.3s ease;
         }
         .lightbox-close:hover{ background: linear-gradient(120deg, var(--pink-deep), var(--gold)); }
+        .lightbox-nav{
+          position:absolute; top:50%; transform: translateY(-50%);
+          width:48px; height:48px; border-radius:50%; border:none;
+          background: rgba(255,255,255,0.15); color: var(--cream);
+          font-size: 1.8rem; line-height:1; cursor:pointer;
+          display:flex; align-items:center; justify-content:center;
+          transition: background 0.3s ease;
+        }
+        .lightbox-nav:hover{ background: linear-gradient(120deg, var(--pink-deep), var(--gold)); }
+        .lightbox-nav-left{ left: 16px; }
+        .lightbox-nav-right{ right: 16px; }
+        @media (max-width: 640px){
+          .lightbox-img{ max-width: 100%; max-height: 70vh; }
+          /* en el teléfono las flechas van abajo para no tapar la foto */
+          .lightbox-nav{ top: auto; bottom: 22px; transform: none; }
+          .lightbox-nav-left{ left: calc(50% - 64px); }
+          .lightbox-nav-right{ right: calc(50% - 64px); }
+          .lightbox{ padding-bottom: 90px; }
+        }
         .swatch-bg{
           position:absolute; inset:0; width:100%; height:100%;
           object-fit: cover;
