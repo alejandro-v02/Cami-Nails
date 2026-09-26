@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode, ElementType, RefObject } from "react";
+import { createPortal } from "react-dom";
 
 import image1 from "../assets/image1.png";
 import image2 from "../assets/image2.png";
@@ -142,9 +143,10 @@ const TESTIMONIOS: { texto: string; autor: string }[] = [
 function Testimonios() {
   const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(true);
+  // se reinicia en cada cambio de idx, así el clic en un punto reinicia el temporizador
   useEffect(() => {
     let fadeTimer: ReturnType<typeof setTimeout>;
-    const t = setInterval(() => {
+    const t = setTimeout(() => {
       setFade(false);
       fadeTimer = setTimeout(() => {
         setIdx((i) => (i + 1) % TESTIMONIOS.length);
@@ -152,10 +154,14 @@ function Testimonios() {
       }, 380);
     }, 4600);
     return () => {
-      clearInterval(t);
+      clearTimeout(t);
       clearTimeout(fadeTimer);
     };
-  }, []);
+  }, [idx]);
+  const irA = (i: number) => {
+    setIdx(i);
+    setFade(true);
+  };
   const actual = TESTIMONIOS[idx];
   return (
     <div className="testi-wrap">
@@ -166,7 +172,13 @@ function Testimonios() {
       </div>
       <div className="testi-dots">
         {TESTIMONIOS.map((_, i) => (
-          <span key={i} className={`testi-dot ${i === idx ? "testi-dot-active" : ""}`} />
+          <button
+            type="button"
+            key={i}
+            className={`testi-dot ${i === idx ? "testi-dot-active" : ""}`}
+            onClick={() => irA(i)}
+            aria-label={`Ver testimonio ${i + 1}`}
+          />
         ))}
       </div>
     </div>
@@ -176,6 +188,23 @@ function Testimonios() {
 function Carrusel({ items }: { items: GaleriaItem[] }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(0);
+  const [abierta, setAbierta] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (abierta === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAbierta(null);
+      if (e.key === "ArrowRight") setAbierta((i) => (i === null ? i : (i + 1) % items.length));
+      if (e.key === "ArrowLeft") setAbierta((i) => (i === null ? i : (i - 1 + items.length) % items.length));
+    };
+    const overflowPrevio = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = overflowPrevio;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [abierta, items.length]);
 
   const scrollToIndex = (i: number) => {
     const track = trackRef.current;
@@ -241,12 +270,18 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
       </button>
 
       <div className="carrusel-track" ref={trackRef}>
-        {items.map((g) => (
-          <div className="swatch carrusel-item" key={g.nombre}>
+        {items.map((g, i) => (
+          <button
+            type="button"
+            className="swatch carrusel-item"
+            key={g.nombre}
+            onClick={() => setAbierta(i)}
+            aria-label={`Ampliar ${g.nombre}`}
+          >
             <img className="swatch-bg" src={g.img} alt={g.nombre} loading="lazy" />
             <div className="swatch-shine" />
             <div className="swatch-label">{g.nombre}</div>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -271,6 +306,30 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
           />
         ))}
       </div>
+
+      {abierta !== null && createPortal(
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={items[abierta].nombre}
+          onClick={() => setAbierta(null)}
+        >
+          <img
+            className="lightbox-img"
+            src={items[abierta].img}
+            alt={items[abierta].nombre}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <p className="lightbox-caption">
+            {items[abierta].nombre} · {abierta + 1}/{items.length}
+          </p>
+          <button type="button" className="lightbox-close" onClick={() => setAbierta(null)} aria-label="Cerrar">
+            ×
+          </button>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
@@ -573,7 +632,34 @@ export default function App() {
           position:relative; aspect-ratio: 1/1; border-radius: 18px; overflow:hidden;
           box-shadow: 0 18px 30px -20px rgba(62,37,48,0.4);
           cursor: pointer;
+          padding: 0; border: none; background: none; font: inherit; display: block;
         }
+        .swatch:focus-visible{ outline: 2px solid var(--gold); outline-offset: 3px; }
+
+        .lightbox{
+          position: fixed; inset: 0; z-index: 100;
+          display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 14px;
+          padding: 24px;
+          background: rgba(62,37,48,0.88);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          animation: lightboxIn 0.3s ease;
+        }
+        @keyframes lightboxIn{ from{ opacity:0; } to{ opacity:1; } }
+        .lightbox-img{
+          max-width: min(90vw, 720px); max-height: 80vh;
+          border-radius: 18px; object-fit: contain;
+          box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+        }
+        .lightbox-caption{ margin:0; color: var(--cream); font-size: 0.9rem; letter-spacing: 0.04em; }
+        .lightbox-close{
+          position:absolute; top: 18px; right: 18px;
+          width:44px; height:44px; border-radius:50%; border:none;
+          background: rgba(255,255,255,0.15); color: var(--cream);
+          font-size: 1.6rem; line-height:1; cursor:pointer;
+          transition: background 0.3s ease;
+        }
+        .lightbox-close:hover{ background: linear-gradient(120deg, var(--pink-deep), var(--gold)); }
         .swatch-bg{
           position:absolute; inset:0; width:100%; height:100%;
           object-fit: cover;
@@ -611,7 +697,7 @@ export default function App() {
         .testi-text{ font-size: 1.08rem; color: var(--plum); line-height:1.7; margin: 10px 0 18px; }
         .testi-autor{ color: var(--pink-deep); font-size:0.9rem; letter-spacing:0.03em; margin:0; }
         .testi-dots{ display:flex; gap:8px; }
-        .testi-dot{ width:7px; height:7px; border-radius:50%; background: rgba(62,37,48,0.22); transition: background 0.3s ease, transform 0.3s ease; }
+        .testi-dot{ width:7px; height:7px; border-radius:50%; padding:0; border:none; cursor:pointer; background: rgba(62,37,48,0.22); transition: background 0.3s ease, transform 0.3s ease; }
         .testi-dot-active{ background: var(--pink-deep); transform: scale(1.3); }
 
         /* CONTACTO */
