@@ -891,7 +891,7 @@ export default function App() {
       {/* NAV */}
       <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
         <span className="brand">
-          Rosa <b>Dorada</b>
+          {NOMBRE_NEGOCIO.split(" ")[0]} <b>{NOMBRE_NEGOCIO.split(" ").slice(1).join(" ")}</b>
         </span>
         <a className="nav-cta" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
           Agendar cita
@@ -918,7 +918,7 @@ export default function App() {
             }}
           />
         ))}
-        <p className="eyebrow">Manicura &amp; nail art en {NOMBRE_NEGOCIO.split(" ")[0]} Dorada</p>
+        <p className="eyebrow">Manicura &amp; nail art en {NOMBRE_NEGOCIO}</p>
         <h1>
           Manos que <em>brillan</em>,
           <br /> historias que se notan
