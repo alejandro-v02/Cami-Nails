@@ -493,6 +493,7 @@ export default function App() {
           font-size: 1.35rem;
           color: var(--plum);
           letter-spacing: 0.02em;
+          text-decoration: none;
         }
         .brand b{ color: var(--pink-deep); font-style: normal; }
         .nav-cta{
@@ -890,9 +891,9 @@ export default function App() {
 
       {/* NAV */}
       <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
-        <span className="brand">
+        <a className="brand" href="#" title="Volver al inicio">
           {NOMBRE_NEGOCIO.split(" ")[0]} <b>{NOMBRE_NEGOCIO.split(" ").slice(1).join(" ")}</b>
-        </span>
+        </a>
         <a className="nav-cta" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
           Agendar cita
         </a>
