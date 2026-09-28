@@ -27,9 +27,28 @@ React 19 + TypeScript + Vite. Belleza y nail art, con paleta crema/oro/rosa.
 Estos valores son placeholders y deberían reemplazarse en
 `src/page/RosaDoradaNails.tsx` con los datos reales del negocio:
 
-- `WHATSAPP_NUMBER` (línea ~7) — es `573001234567`; poner el número real con
-  formato internacional (código país + número, sin `+`).
-- `INSTAGRAM_HANDLE` (línea ~8) — verificar que sea `@rosadorada.nails`.
+- `WHATSAPP_NUMBER` (al inicio del archivo) — es `573001234567`; poner el
+  número real con formato internacional (código país + número, sin `+`).
+- `INSTAGRAM_HANDLE` (al inicio del archivo) — verificar que sea `@rosadorada.nails`.
 
-Además, la galería (`GALERIA`) usa swatches ilustrativos en CSS; reemplazarlos
-por `<img>` con fotos reales cuando estén disponibles.
+## Galería
+
+Las fotos están en `src/assets/` y se listan en `GALERIA`. Para añadir una,
+impórtala arriba del archivo y agrégala al arreglo.
+
+- Carrusel automático con efecto coverflow; la velocidad se cambia con
+  `AUTOPLAY_MS` (en milisegundos).
+- Se pausa con el ratón encima, al tocarlo en el teléfono (6 s), con una foto
+  ampliada o cuando no está en pantalla, y no avanza solo si el dispositivo
+  tiene activado "reducir movimiento".
+- Al tocar una foto se abre ampliada: se cierra con ×, Esc o tocando fuera, y
+  se cambia de foto con ‹ ›, las flechas del teclado o deslizando el dedo.
+
+## Probar en el teléfono
+
+```bash
+npm run dev -- --host
+```
+
+Abre en el teléfono la dirección `Network` que muestra la terminal (el
+teléfono debe estar en la misma wifi que el computador).
