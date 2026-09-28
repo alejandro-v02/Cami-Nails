@@ -493,6 +493,7 @@ export default function App() {
           font-size: 1.35rem;
           color: var(--plum);
           letter-spacing: 0.02em;
+          text-decoration: none;
         }
         .brand b{ color: var(--pink-deep); font-style: normal; }
         .nav-cta{
@@ -606,6 +607,9 @@ export default function App() {
           transition: transform 0.35s ease, background 0.35s ease, border-color 0.35s ease;
         }
         .btn-ghost:hover{ transform: translateY(-3px); background: rgba(255,255,255,0.7); border-color: var(--gold); }
+        /* variante para fondos oscuros (sección de contacto) */
+        .btn-ghost-dark{ color: var(--cream); border-color: rgba(251,243,232,0.4); background: rgba(255,255,255,0.08); }
+        .btn-ghost-dark:hover{ background: rgba(255,255,255,0.18); }
 
         /* SECTION shared */
         .section{ position:relative; padding: 110px 6vw; max-width: 1180px; margin: 0 auto; }
@@ -890,9 +894,9 @@ export default function App() {
 
       {/* NAV */}
       <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
-        <span className="brand">
+        <a className="brand" href="#" title="Volver al inicio">
           {NOMBRE_NEGOCIO.split(" ")[0]} <b>{NOMBRE_NEGOCIO.split(" ").slice(1).join(" ")}</b>
-        </span>
+        </a>
         <a className="nav-cta" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
           Agendar cita
         </a>
@@ -1015,9 +1019,8 @@ export default function App() {
             <a className="btn-primary" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
               Escribir por WhatsApp
             </a>
-            
-              <a className="btn-ghost"
-              style={{ color: "var(--cream)", borderColor: "rgba(251,243,232,0.4)", background: "rgba(255,255,255,0.08)" }}
+            <a
+              className="btn-ghost btn-ghost-dark"
               href={`https://instagram.com/${INSTAGRAM_HANDLE.replace("@", "")}`}
               target="_blank"
               rel="noreferrer"
