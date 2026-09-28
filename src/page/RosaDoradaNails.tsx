@@ -439,6 +439,12 @@ export default function App() {
 
         *{ box-sizing: border-box; }
 
+        /* contorno visible al navegar con teclado (Tab), no al hacer clic */
+        a:focus-visible, button:focus-visible{
+          outline: 2px solid var(--gold);
+          outline-offset: 3px;
+        }
+
         html{
           scroll-behavior: smooth;
         }
@@ -746,7 +752,6 @@ export default function App() {
           cursor: pointer;
           padding: 0; border: none; background: none; font: inherit; display: block;
         }
-        .swatch:focus-visible{ outline: 2px solid var(--gold); outline-offset: 3px; }
 
         .lightbox{
           position: fixed; inset: 0; z-index: 100;
