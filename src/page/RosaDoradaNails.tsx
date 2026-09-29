@@ -336,7 +336,14 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
             onClick={() => setAbierta(i)}
             aria-label={`Ampliar ${g.nombre}`}
           >
-            <img className="swatch-bg" src={g.img} alt={g.nombre} loading="lazy" />
+            <img
+              className="swatch-bg"
+              src={g.img}
+              alt={g.nombre}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
             <div className="swatch-shine" />
             <div className="swatch-label">{g.nombre}</div>
           </button>
