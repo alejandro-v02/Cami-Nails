@@ -203,6 +203,16 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
   const [active, setActive] = useState(0);
   const [abierta, setAbierta] = useState<number | null>(null);
   const swipeX = useRef<number | null>(null);
+  const cerrarRef = useRef<HTMLButtonElement | null>(null);
+  const estaAbierta = abierta !== null;
+
+  // al abrir, el foco va al botón de cerrar; al cerrar, vuelve a la foto que lo abrió
+  useEffect(() => {
+    if (!estaAbierta) return;
+    const previo = document.activeElement as HTMLElement | null;
+    cerrarRef.current?.focus();
+    return () => previo?.focus({ preventScroll: true });
+  }, [estaAbierta]);
 
   const fotoSiguiente = () => setAbierta((i) => (i === null ? i : (i + 1) % items.length));
   const fotoAnterior = () => setAbierta((i) => (i === null ? i : (i - 1 + items.length) % items.length));
@@ -421,7 +431,13 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
           >
             ›
           </button>
-          <button type="button" className="lightbox-close" onClick={() => setAbierta(null)} aria-label="Cerrar">
+          <button
+            type="button"
+            className="lightbox-close"
+            ref={cerrarRef}
+            onClick={() => setAbierta(null)}
+            aria-label="Cerrar"
+          >
             ×
           </button>
         </div>,
