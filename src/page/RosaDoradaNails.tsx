@@ -494,6 +494,7 @@ export default function App() {
           overflow-x: hidden;
           position: relative;
           min-height: 100vh;
+          min-height: 100svh; /* altura visible real en móvil (sin la barra del navegador) */
         }
 
         h1,h2,h3, .display{
@@ -557,6 +558,7 @@ export default function App() {
         .hero{
           position: relative;
           min-height: 100vh;
+          min-height: 100svh; /* altura visible real en móvil (sin la barra del navegador) */
           display:flex; flex-direction:column; align-items:center; justify-content:center;
           text-align:center;
           padding: 120px 6vw 80px;
