@@ -417,7 +417,8 @@ export default function App() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
-    window.addEventListener("scroll", onScroll);
+    onScroll(); // al recargar a mitad de página el navegador restaura el scroll sin disparar el evento
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -437,6 +438,12 @@ export default function App() {
         }
 
         *{ box-sizing: border-box; }
+
+        /* contorno visible al navegar con teclado (Tab), no al hacer clic */
+        a:focus-visible, button:focus-visible{
+          outline: 2px solid var(--gold);
+          outline-offset: 3px;
+        }
 
         html{
           scroll-behavior: smooth;
@@ -745,7 +752,6 @@ export default function App() {
           cursor: pointer;
           padding: 0; border: none; background: none; font: inherit; display: block;
         }
-        .swatch:focus-visible{ outline: 2px solid var(--gold); outline-offset: 3px; }
 
         .lightbox{
           position: fixed; inset: 0; z-index: 100;
