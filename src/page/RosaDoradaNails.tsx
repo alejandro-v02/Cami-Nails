@@ -143,8 +143,11 @@ const TESTIMONIOS: { texto: string; autor: string }[] = [
 function Testimonios() {
   const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(true);
+  const [pausado, setPausado] = useState(false);
   // se reinicia en cada cambio de idx, así el clic en un punto reinicia el temporizador
+  // y se detiene mientras el ratón está encima para poder leer con calma
   useEffect(() => {
+    if (pausado) return;
     let fadeTimer: ReturnType<typeof setTimeout>;
     const t = setTimeout(() => {
       setFade(false);
@@ -157,7 +160,7 @@ function Testimonios() {
       clearTimeout(t);
       clearTimeout(fadeTimer);
     };
-  }, [idx]);
+  }, [idx, pausado]);
   const irA = (i: number) => {
     setIdx(i);
     setFade(true);
@@ -165,7 +168,15 @@ function Testimonios() {
   const actual = TESTIMONIOS[idx];
   return (
     <div className="testi-wrap">
-      <div className={`testi-card ${fade ? "testi-in" : "testi-out"}`}>
+      <div
+        className={`testi-card ${fade ? "testi-in" : "testi-out"}`}
+        onPointerEnter={(e) => {
+          if (e.pointerType !== "mouse") return;
+          setPausado(true);
+          setFade(true); // por si entra justo a mitad del desvanecido
+        }}
+        onPointerLeave={(e) => e.pointerType === "mouse" && setPausado(false)}
+      >
         <span className="testi-quote">“</span>
         <p className="testi-text">{actual.texto}</p>
         <p className="testi-autor">— {actual.autor}</p>
