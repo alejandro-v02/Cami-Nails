@@ -22,8 +22,9 @@ import image15 from "../assets/image15.png";
 const NOMBRE_NEGOCIO = "Rosa Dorada";
 const WHATSAPP_NUMBER = "573001234567"; // reemplaza por el número real
 const INSTAGRAM_HANDLE = "@rosadorada.nails";
-const WHATSAPP_MSG = encodeURIComponent("¡Hola! Vi tu página y quiero agendar una cita 💅");
-const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
+const whatsappUrl = (mensaje: string) =>
+  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
+const WHATSAPP_URL = whatsappUrl("¡Hola! Vi tu página y quiero agendar una cita 💅");
 
 function useReveal(): [RefObject<HTMLDivElement | null>, boolean] {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -713,6 +714,15 @@ export default function App() {
         }
         .servicio-card h3{ font-size:1.18rem; margin: 0 0 10px; }
         .servicio-card p{ color: var(--plum-soft); font-size:0.94rem; line-height:1.6; margin:0; }
+        .servicio-cta{
+          position: relative; z-index: 2; /* por encima del brillo ::after de la tarjeta */
+          display:inline-block; margin-top: 16px;
+          font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase;
+          color: var(--pink-deep); text-decoration: none;
+          border-bottom: 1px solid transparent;
+          transition: border-color 0.3s ease, color 0.3s ease;
+        }
+        .servicio-cta:hover{ color: var(--gold); border-color: var(--gold); }
 
         /* GALERIA — carrusel */
         .carrusel{ position: relative; padding: 0 56px; }
@@ -1023,6 +1033,14 @@ export default function App() {
               <div className="servicio-icon">{s.icono}</div>
               <h3>{s.titulo}</h3>
               <p>{s.detalle}</p>
+              <a
+                className="servicio-cta"
+                href={whatsappUrl(`¡Hola! Vi tu página y quiero agendar: ${s.titulo} 💅`)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Agendar este servicio →
+              </a>
             </Reveal>
           ))}
         </div>
