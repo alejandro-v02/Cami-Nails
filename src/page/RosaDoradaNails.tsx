@@ -544,6 +544,21 @@ export default function App() {
           text-decoration: none;
         }
         .brand b{ color: var(--pink-deep); font-style: normal; }
+        .nav-links{ display:flex; gap: 30px; }
+        .nav-links a{
+          position: relative;
+          font-size: 0.86rem; letter-spacing: 0.06em;
+          color: var(--plum); text-decoration: none;
+        }
+        .nav-links a::after{
+          content:""; position:absolute; left:0; right:0; bottom:-4px; height:1px;
+          background: var(--gold);
+          transform: scaleX(0); transform-origin: left;
+          transition: transform 0.35s ease;
+        }
+        .nav-links a:hover::after{ transform: scaleX(1); }
+        /* que el menú fijo no tape el título al saltar a una sección */
+        .section{ scroll-margin-top: 70px; }
         .nav-cta{
           font-family:'Jost', sans-serif;
           font-size: 0.82rem;
@@ -932,6 +947,7 @@ export default function App() {
 
         @media (max-width: 880px){
           .sobre{ grid-template-columns: 1fr; gap: 40px; }
+          .nav-links{ display: none; }
           .servicios-grid{ grid-template-columns: repeat(2,1fr); }
           .section{ padding: 90px 6vw; }
         }
@@ -970,6 +986,12 @@ export default function App() {
         <a className="brand" href="#" title="Volver al inicio">
           {NOMBRE_NEGOCIO.split(" ")[0]} <b>{NOMBRE_NEGOCIO.split(" ").slice(1).join(" ")}</b>
         </a>
+        <div className="nav-links">
+          <a href="#servicios">Servicios</a>
+          <a href="#galeria">Galería</a>
+          <a href="#testimonios">Opiniones</a>
+          <a href="#contacto">Contacto</a>
+        </div>
         <a className="nav-cta" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
           Agendar cita
         </a>
@@ -1089,7 +1111,7 @@ export default function App() {
       </section>
 
       {/* CONTACTO */}
-      <section className="section">
+      <section className="section" id="contacto">
         <Reveal className="contacto">
           <h2>Agenda tu próxima cita</h2>
           <p>
