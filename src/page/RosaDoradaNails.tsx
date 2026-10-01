@@ -22,8 +22,9 @@ import image15 from "../assets/image15.png";
 const NOMBRE_NEGOCIO = "Rosa Dorada";
 const WHATSAPP_NUMBER = "573001234567"; // reemplaza por el número real
 const INSTAGRAM_HANDLE = "@rosadorada.nails";
-const WHATSAPP_MSG = encodeURIComponent("¡Hola! Vi tu página y quiero agendar una cita 💅");
-const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
+const whatsappUrl = (mensaje: string) =>
+  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
+const WHATSAPP_URL = whatsappUrl("¡Hola! Vi tu página y quiero agendar una cita 💅");
 
 function useReveal(): [RefObject<HTMLDivElement | null>, boolean] {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -143,8 +144,11 @@ const TESTIMONIOS: { texto: string; autor: string }[] = [
 function Testimonios() {
   const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(true);
+  const [pausado, setPausado] = useState(false);
   // se reinicia en cada cambio de idx, así el clic en un punto reinicia el temporizador
+  // y se detiene mientras el ratón está encima para poder leer con calma
   useEffect(() => {
+    if (pausado) return;
     let fadeTimer: ReturnType<typeof setTimeout>;
     const t = setTimeout(() => {
       setFade(false);
@@ -157,7 +161,7 @@ function Testimonios() {
       clearTimeout(t);
       clearTimeout(fadeTimer);
     };
-  }, [idx]);
+  }, [idx, pausado]);
   const irA = (i: number) => {
     setIdx(i);
     setFade(true);
@@ -165,7 +169,15 @@ function Testimonios() {
   const actual = TESTIMONIOS[idx];
   return (
     <div className="testi-wrap">
-      <div className={`testi-card ${fade ? "testi-in" : "testi-out"}`}>
+      <div
+        className={`testi-card ${fade ? "testi-in" : "testi-out"}`}
+        onPointerEnter={(e) => {
+          if (e.pointerType !== "mouse") return;
+          setPausado(true);
+          setFade(true); // por si entra justo a mitad del desvanecido
+        }}
+        onPointerLeave={(e) => e.pointerType === "mouse" && setPausado(false)}
+      >
         <span className="testi-quote">“</span>
         <p className="testi-text">{actual.texto}</p>
         <p className="testi-autor">— {actual.autor}</p>
@@ -192,6 +204,16 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
   const [active, setActive] = useState(0);
   const [abierta, setAbierta] = useState<number | null>(null);
   const swipeX = useRef<number | null>(null);
+  const cerrarRef = useRef<HTMLButtonElement | null>(null);
+  const estaAbierta = abierta !== null;
+
+  // al abrir, el foco va al botón de cerrar; al cerrar, vuelve a la foto que lo abrió
+  useEffect(() => {
+    if (!estaAbierta) return;
+    const previo = document.activeElement as HTMLElement | null;
+    cerrarRef.current?.focus();
+    return () => previo?.focus({ preventScroll: true });
+  }, [estaAbierta]);
 
   const fotoSiguiente = () => setAbierta((i) => (i === null ? i : (i + 1) % items.length));
   const fotoAnterior = () => setAbierta((i) => (i === null ? i : (i - 1 + items.length) % items.length));
@@ -325,7 +347,14 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
             onClick={() => setAbierta(i)}
             aria-label={`Ampliar ${g.nombre}`}
           >
-            <img className="swatch-bg" src={g.img} alt={g.nombre} loading="lazy" />
+            <img
+              className="swatch-bg"
+              src={g.img}
+              alt={g.nombre}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
             <div className="swatch-shine" />
             <div className="swatch-label">{g.nombre}</div>
           </button>
@@ -403,7 +432,13 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
           >
             ›
           </button>
-          <button type="button" className="lightbox-close" onClick={() => setAbierta(null)} aria-label="Cerrar">
+          <button
+            type="button"
+            className="lightbox-close"
+            ref={cerrarRef}
+            onClick={() => setAbierta(null)}
+            aria-label="Cerrar"
+          >
             ×
           </button>
         </div>,
@@ -415,8 +450,13 @@ function Carrusel({ items }: { items: GaleriaItem[] }) {
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
+  const [mostrarFlotante, setMostrarFlotante] = useState(false);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 24);
+      // el botón flotante aparece al pasar la portada, que ya tiene su propio botón
+      setMostrarFlotante(window.scrollY > window.innerHeight * 0.7);
+    };
     onScroll(); // al recargar a mitad de página el navegador restaura el scroll sin disparar el evento
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -460,6 +500,7 @@ export default function App() {
           overflow-x: hidden;
           position: relative;
           min-height: 100vh;
+          min-height: 100svh; /* altura visible real en móvil (sin la barra del navegador) */
         }
 
         h1,h2,h3, .display{
@@ -503,6 +544,21 @@ export default function App() {
           text-decoration: none;
         }
         .brand b{ color: var(--pink-deep); font-style: normal; }
+        .nav-links{ display:flex; gap: 30px; }
+        .nav-links a{
+          position: relative;
+          font-size: 0.86rem; letter-spacing: 0.06em;
+          color: var(--plum); text-decoration: none;
+        }
+        .nav-links a::after{
+          content:""; position:absolute; left:0; right:0; bottom:-4px; height:1px;
+          background: var(--gold);
+          transform: scaleX(0); transform-origin: left;
+          transition: transform 0.35s ease;
+        }
+        .nav-links a:hover::after{ transform: scaleX(1); }
+        /* que el menú fijo no tape el título al saltar a una sección */
+        .section{ scroll-margin-top: 70px; }
         .nav-cta{
           font-family:'Jost', sans-serif;
           font-size: 0.82rem;
@@ -523,6 +579,7 @@ export default function App() {
         .hero{
           position: relative;
           min-height: 100vh;
+          min-height: 100svh; /* altura visible real en móvil (sin la barra del navegador) */
           display:flex; flex-direction:column; align-items:center; justify-content:center;
           text-align:center;
           padding: 120px 6vw 80px;
@@ -677,6 +734,15 @@ export default function App() {
         }
         .servicio-card h3{ font-size:1.18rem; margin: 0 0 10px; }
         .servicio-card p{ color: var(--plum-soft); font-size:0.94rem; line-height:1.6; margin:0; }
+        .servicio-cta{
+          position: relative; z-index: 2; /* por encima del brillo ::after de la tarjeta */
+          display:inline-block; margin-top: 16px;
+          font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase;
+          color: var(--pink-deep); text-decoration: none;
+          border-bottom: 1px solid transparent;
+          transition: border-color 0.3s ease, color 0.3s ease;
+        }
+        .servicio-cta:hover{ color: var(--gold); border-color: var(--gold); }
 
         /* GALERIA — carrusel */
         .carrusel{ position: relative; padding: 0 56px; }
@@ -859,6 +925,21 @@ export default function App() {
         .contacto-info{ position:relative; z-index:2; margin-top: 40px; font-size:0.88rem; color: rgba(251,243,232,0.65); letter-spacing:0.02em; }
         .contacto-info span{ margin: 0 10px; }
 
+        /* BOTÓN FLOTANTE WHATSAPP */
+        .wa-flotante{
+          position: fixed; right: 20px; bottom: 20px; z-index: 40;
+          bottom: calc(20px + env(safe-area-inset-bottom));
+          width: 58px; height: 58px; border-radius: 50%;
+          display:flex; align-items:center; justify-content:center;
+          color: var(--cream);
+          background: linear-gradient(135deg, var(--pink-deep), var(--gold));
+          box-shadow: 0 14px 30px -10px rgba(201,103,139,0.7);
+          opacity: 0; transform: translateY(20px) scale(0.8); pointer-events: none;
+          transition: opacity 0.4s ease, transform 0.4s cubic-bezier(.22,.68,.32,1.3);
+        }
+        .wa-flotante-visible{ opacity: 1; transform: none; pointer-events: auto; }
+        .wa-flotante-visible:hover{ transform: scale(1.08); }
+
         footer{
           text-align:center; padding: 30px 6vw 40px;
           font-size: 0.8rem; color: var(--plum-soft);
@@ -866,6 +947,7 @@ export default function App() {
 
         @media (max-width: 880px){
           .sobre{ grid-template-columns: 1fr; gap: 40px; }
+          .nav-links{ display: none; }
           .servicios-grid{ grid-template-columns: repeat(2,1fr); }
           .section{ padding: 90px 6vw; }
         }
@@ -885,6 +967,7 @@ export default function App() {
           .contacto{ padding: 56px 6vw; }
           .contacto-ctas{ flex-direction: column; align-items: stretch; }
           .contacto-ctas a{ text-align: center; }
+          footer{ padding-bottom: 100px; } /* que el botón flotante no tape el texto */
           .carrusel{ padding: 0 56px; }
           .carrusel-arrow{ width: 38px; height: 38px; font-size: 1.25rem; }
         }
@@ -903,6 +986,12 @@ export default function App() {
         <a className="brand" href="#" title="Volver al inicio">
           {NOMBRE_NEGOCIO.split(" ")[0]} <b>{NOMBRE_NEGOCIO.split(" ").slice(1).join(" ")}</b>
         </a>
+        <div className="nav-links">
+          <a href="#servicios">Servicios</a>
+          <a href="#galeria">Galería</a>
+          <a href="#testimonios">Opiniones</a>
+          <a href="#contacto">Contacto</a>
+        </div>
         <a className="nav-cta" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
           Agendar cita
         </a>
@@ -987,6 +1076,14 @@ export default function App() {
               <div className="servicio-icon">{s.icono}</div>
               <h3>{s.titulo}</h3>
               <p>{s.detalle}</p>
+              <a
+                className="servicio-cta"
+                href={whatsappUrl(`¡Hola! Vi tu página y quiero agendar: ${s.titulo} 💅`)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Agendar este servicio →
+              </a>
             </Reveal>
           ))}
         </div>
@@ -1014,7 +1111,7 @@ export default function App() {
       </section>
 
       {/* CONTACTO */}
-      <section className="section">
+      <section className="section" id="contacto">
         <Reveal className="contacto">
           <h2>Agenda tu próxima cita</h2>
           <p>
@@ -1044,6 +1141,20 @@ export default function App() {
       <footer>
         © {new Date().getFullYear()} {NOMBRE_NEGOCIO} Nails — hecho con cariño para cada clienta.
       </footer>
+
+      <a
+        className={`wa-flotante ${mostrarFlotante ? "wa-flotante-visible" : ""}`}
+        href={WHATSAPP_URL}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Agendar cita por WhatsApp"
+        tabIndex={mostrarFlotante ? 0 : -1}
+        aria-hidden={!mostrarFlotante}
+      >
+        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="currentColor">
+          <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.3.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z" />
+        </svg>
+      </a>
     </div>
   );
 }
